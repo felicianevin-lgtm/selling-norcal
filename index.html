@@ -1,3 +1,174 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Selling NorCal</title>
-<meta name="robots" content="noindex"><style>body{margin:0;background:#0b0b0b;color:#e6e0d2;font-family:Montserrat,Arial,sans-serif;display:flex;min-height:100vh;align-items:center;justify-content:center;text-align:center}div{max-width:420px;padding:24px}img{width:220px;margin-bottom:24px}p{font-size:13px;line-height:1.6;color:#9a9a9a}a{color:#c9a862}</style></head>
-<body><div><img src="logo-white.png" alt="Deborah Maciel · Belia Martinez · eXp Realty | Luxury"><p>This page is reached from a printed piece. If you arrived here from a postcard, please scan the code on the card again to open your guide.</p><p>Deborah Maciel · DRE 01997178 · eXp Realty of Northern California, Inc., DRE 02188495<br>Belia Martinez · DRE 01705381 · eXp Realty of California, Inc., DRE 01878277<br>Equal Housing Opportunity</p></div></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deborah Maciel &amp; Belia Martinez · eXp Luxury</title>
+<meta name="description" content="Deborah Maciel and Belia Martinez, REALTORS® with eXp Luxury. Selling, buying, or both in the East Bay. Request a conversation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0b0b0b;--gold:#c9a862;--gold-dk:#a8894a;--cream:#f4efe6;--paper:#fff;--muted:#6b6b6b;--line:#e3ddd0}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:'Montserrat',Arial,sans-serif;color:#1d1d1d;background:var(--cream);line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+.hero{background:var(--ink);color:#fff;position:relative;overflow:hidden}
+.hero .bg{position:absolute;inset:0;background:radial-gradient(ellipse at 75% 20%,#3a2f1a 0%,#151311 45%,#060606 100%);opacity:.95}
+.hero .wrap{position:relative;padding:28px 20px 44px}
+.hero .logo{width:190px;display:block;margin-bottom:34px}
+.kick{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+.hero h1{font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;font-size:clamp(34px,6vw,58px);line-height:1.02;margin:0 0 16px;max-width:14ch}
+.hero h1 em{font-style:italic;color:var(--gold)}
+.hero p.lead{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(18px,2.4vw,22px);line-height:1.35;color:#e6e0d2;margin:0 0 22px;max-width:50ch}
+.rule{width:56px;height:1px;background:var(--gold);margin:0 0 18px}
+.pts{list-style:none;padding:0;margin:0;font-size:14px;color:#e6e0d2}
+.pts li{padding-left:22px;position:relative;margin:0 0 8px}
+.pts li:before{content:"";position:absolute;left:0;top:9px;width:9px;height:1px;background:var(--gold)}
+.grid{display:grid;grid-template-columns:1fr;gap:28px;align-items:start}
+@media(min-width:860px){.grid{grid-template-columns:1.15fr .85fr;gap:56px}.hero .wrap{padding:36px 20px 64px}}
+.card{background:var(--paper);border-top:3px solid var(--gold);padding:26px 22px 22px;box-shadow:0 24px 60px rgba(0,0,0,.35);color:#1d1d1d}
+.card h2{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:26px;margin:0 0 4px;line-height:1.1;color:var(--ink)}
+.card .sub{font-size:13px;color:var(--muted);margin:0 0 18px}
+label{display:block;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-dk);margin:12px 0 5px;font-weight:600}
+input[type=text],input[type=email],input[type=tel],select,textarea{width:100%;padding:12px;border:1px solid #cfc8b8;background:#fff;font:inherit;font-size:16px;border-radius:2px}
+textarea{min-height:96px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,98,.25)}
+.consent{display:flex;gap:10px;align-items:flex-start;margin:16px 0 14px;font-size:11px;line-height:1.45;color:#555}
+.consent input{margin-top:3px;flex:0 0 auto}
+.btn{display:block;width:100%;padding:15px 18px;background:var(--ink);color:#fff;border:0;font:inherit;font-size:13px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px;text-align:center;text-decoration:none}
+.btn:hover{background:#222}
+.btn.gold{background:var(--gold);color:var(--ink)}
+.fine{font-size:10.5px;color:#8a8a8a;margin-top:10px;line-height:1.45}
+.err{color:#a13a2b;font-size:12px;margin-top:8px;display:none}
+.thanks{display:none}
+.thanks h2{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:28px;margin:0 0 8px;color:var(--ink)}
+.thanks p{font-size:14px;color:#444;margin:0 0 14px}
+.thanks .btn{margin-bottom:10px}
+.band{background:var(--cream);padding:44px 0}
+.band h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:26px;margin:0 0 6px;color:var(--ink)}
+.band .k{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold-dk);margin-bottom:8px}
+.cols{display:grid;grid-template-columns:1fr;gap:22px;margin-top:22px}
+@media(min-width:700px){.cols{grid-template-columns:repeat(3,1fr)}}
+.col b{display:block;font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:19px;color:var(--ink);margin-bottom:4px}
+.col b span{color:var(--gold);margin-right:6px;font-weight:400}
+.col p{font-size:13.5px;color:#444;margin:0}
+.agents{background:#fff;padding:40px 0;border-top:1px solid var(--line)}
+.agents .row{display:grid;grid-template-columns:1fr;gap:20px;align-items:center}
+@media(min-width:700px){.agents .row{grid-template-columns:1fr 1fr 1fr}}
+.agents img.logo{width:200px}
+.agent b{display:block;font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:20px;color:var(--ink)}
+.agent{font-size:13px;color:#444;line-height:1.7}
+.agent a{color:var(--gold-dk);text-decoration:none}
+.quote{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:22px;color:var(--ink);line-height:1.3;border-left:2px solid var(--gold);padding-left:16px;margin:30px 0 0}
+footer{background:var(--ink);color:#8a8a8a;padding:26px 0 34px;font-size:10.5px;line-height:1.6}
+footer .eho{display:inline-block;width:12px;height:12px;vertical-align:middle;margin-right:5px;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M50 8 L8 42 L18 42 L18 92 L82 92 L82 42 L92 42 Z' fill='none' stroke='%238a8a8a' stroke-width='7' stroke-linejoin='round'/><rect x='32' y='50' width='36' height='8' fill='%238a8a8a'/><rect x='32' y='66' width='36' height='8' fill='%238a8a8a'/></svg>") center/contain no-repeat}
+footer b{color:#bdb5a4;font-weight:500}
+footer a{color:#bdb5a4}
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="bg"></div>
+  <div class="wrap">
+    <img class="logo" src="logo-white.png" alt="Deborah Maciel · Belia Martinez · eXp Realty | Luxury">
+    <div class="grid">
+      <div>
+        <div class="kick">East Bay · Tri-Valley · Lamorinda</div>
+        <h1>Selling, buying, <em>or both.</em></h1>
+        <div class="rule"></div>
+        <p class="lead">We are Deborah Maciel and Belia Martinez, REALTORS® with eXp Luxury. Every home we represent gets a plan: a valuation from closed sales, a presentation plan, a launch, and marketing aimed where the buyers actually are.</p>
+        <ul class="pts">
+          <li>Selling a home that deserves more than a listing</li>
+          <li>Buying in the East Bay, from here or from out of state</li>
+          <li>Selling and buying at the same time, with one team on both sides</li>
+          <li>Just want to know what your home is worth today</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <form id="form" novalidate>
+          <h2>Let's talk.</h2>
+          <p class="sub">Tell us a little about what you're thinking. No pressure, and the first conversation is free and confidential.</p>
+          <label for="name">Name</label>
+          <input type="text" id="name" name="name" autocomplete="name" required>
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" autocomplete="email" inputmode="email" required>
+          <label for="phone">Mobile (optional)</label>
+          <input type="tel" id="phone" name="phone" autocomplete="tel" inputmode="tel">
+          <label for="interest">I'm thinking about</label>
+          <select id="interest" name="interest">
+            <option>Selling</option><option>Buying</option><option>Selling and buying</option><option>What my home is worth</option><option>Something else</option>
+          </select>
+          <label for="address">Property address (optional)</label>
+          <input type="text" id="address" name="address" autocomplete="street-address" placeholder="Street, City">
+          <label for="message">Anything we should know?</label>
+          <textarea id="message" name="message" placeholder="Timing, questions, what matters most to you"></textarea>
+          <div class="consent"><input type="checkbox" id="consent" name="consent"><label for="consent" style="margin:0;letter-spacing:0;text-transform:none;font-weight:400;font-size:11px;color:#555">By providing my mobile number I give prior express written consent for Deborah Maciel, Belia Martinez, eXp Realty, and their authorized representatives to contact me at the number above by call and text, including automated dialing, automated texts, and prerecorded or AI voice messages. Consent is not a condition of any purchase. Message and data rates may apply. Reply STOP to opt out. Optional if no mobile number is entered.</label></div>
+          <button class="btn" type="submit" id="submit">Request a conversation</button>
+          <div class="err" id="err">Please add your name and email.</div>
+          <p class="fine">We use what you share only to respond to you. You can unsubscribe from emails at any time.</p>
+        </form>
+
+        <div class="thanks" id="thanks">
+          <h2>Thank you.</h2>
+          <p>One of us will reach out shortly. If it's easier, call or text Deborah at (209) 207-2084 or Belia at (925) 518-7500.</p>
+          <a class="btn gold" id="fello" href="#FELLO_HOME_VALUE_URL" target="_blank" rel="noopener">What's my home worth today?</a>
+          <p class="fine">Personalized luxury home value report, about one minute.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <div class="k">How we work</div>
+    <h3>A listing puts your home in front of whoever happens to be looking. A plan puts it in front of the buyer who isn't.</h3>
+    <div class="cols">
+      <div class="col"><b><span>1</span>Priced to closed sales</b><p>Not to what neighbors are asking. We show you the homes a buyer will compare yours to, and where yours wins.</p></div>
+      <div class="col"><b><span>2</span>Marketed where buyers are</b><p>Some buyers are three streets away. Many are moving in from Chicago, Seattle, Boston, New York, and D.C. We reach both.</p></div>
+      <div class="col"><b><span>3</span>A plan for week three</b><p>Decision points agreed before launch, and a written update every week, so a price move is a decision and never the default.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="agents">
+  <div class="wrap">
+    <div class="row">
+      <img class="logo" src="logo-black.png" alt="Deborah Maciel · Belia Martinez · eXp Realty | Luxury">
+      <div class="agent"><b>Deborah Maciel</b>REALTOR® · eXp Luxury<br><a href="tel:12092072084">(209) 207-2084</a><br><a href="mailto:info@deborahmaciel.com">info@deborahmaciel.com</a><br>DRE 01997178</div>
+      <div class="agent"><b>Belia Martinez</b>REALTOR® · eXp Luxury<br><a href="tel:19255187500">(925) 518-7500</a><br><a href="mailto:beliam.homes@gmail.com">beliam.homes@gmail.com</a><br>DRE 01705381</div>
+    </div>
+    <p class="quote">There are a lot of agents. Not all of them bring a plan. We hold ourselves to the highest standard of service for our clients, and that starts with the marketing plan.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <b>Deborah Maciel</b> · DRE 01997178 · eXp Realty of Northern California, Inc., DRE 02188495, 915 Highland Pointe Dr Ste 250, Roseville, CA 95678<br>
+    <b>Belia Martinez</b> · DRE 01705381 · eXp Realty of California, Inc., DRE 01878277, 2603 Camino Ramon Ste 200, San Ramon, CA 94583<br>
+    <span class="eho"></span>Equal Housing Opportunity. This is not intended as a solicitation if your property is currently listed with another broker or if you are currently working with a licensed real estate professional. Buyer-origin statistics: Allied Migration Map, 2025 trends. <a href="privacy.html">Privacy</a>
+  </div>
+</footer>
+
+<script>
+const LEAD_ENDPOINT = "";            // Google Apps Script Web App /exec URL (apps-script/Code.gs) -> Follow Up Boss. Empty = demo mode.
+const FELLO_URL     = "#FELLO_HOME_VALUE_URL";
+const $ = id => document.getElementById(id);
+$("fello").href = FELLO_URL;
+$("form").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const f=e.target, v=k=>f[k].value.trim();
+  if(!v("name")||!v("email")||!/^\S+@\S+\.\S+$/.test(v("email"))){ $("err").style.display="block"; return; }
+  if(v("phone") && !f.consent.checked){ $("err").textContent="Please check the consent box if you'd like us to text or call the number you entered, or leave the number blank."; $("err").style.display="block"; return; }
+  $("submit").disabled=true; $("submit").textContent="Sending…";
+  const payload={name:v("name"),email:v("email"),phone:v("phone"),address:v("address"),interest:v("interest"),message:v("message"),consent:f.consent.checked,
+                 offer:"contact",fubTags:["Partners In Luxury","Website Contact"],source:"Website",page:location.href,ts:new Date().toISOString()};
+  try{ if(LEAD_ENDPOINT){ await fetch(LEAD_ENDPOINT,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}); } }catch(err){}
+  f.style.display="none"; $("thanks").style.display="block"; window.scrollTo({top:0,behavior:"smooth"});
+});
+</script>
+</body>
+</html>

@@ -20,7 +20,8 @@ const OFFERS = {
   plan:      { tags: ['Partners In Luxury', 'Expired Luxury', 'QR Plan'],         stage: 'Expired Luxury - Partners In Luxury', plan: 24 },
   checklist: { tags: ['Partners In Luxury', 'Expired Luxury', 'QR Checklist'],    stage: 'Expired Luxury - Partners In Luxury', plan: 24 },
   fallprep:  { tags: ['Partners In Luxury', 'Luxury', 'QR Fall Prep'],            stage: null, plan: null },
-  report:    { tags: ['Partners In Luxury', 'Luxury', 'QR Market Report'],        stage: null, plan: null }
+  report:    { tags: ['Partners In Luxury', 'Luxury', 'QR Market Report'],        stage: null, plan: null },
+  contact:   { tags: ['Partners In Luxury', 'Website Contact'],                      stage: null, plan: null }
 };
 
 function doPost(e) {
@@ -39,7 +40,7 @@ function doPost(e) {
       phones: d.phone ? [{ value: d.phone, type: 'mobile' }] : [],
       addresses: d.address ? [{ street: addr[0] || '', city: addr[1] || '', state: 'CA' }] : [],
       tags: cfg.tags,
-      source: 'Postcard QR',
+      source: d.offer === 'contact' ? 'Website' : 'Postcard QR',
       type: 'Seller'
     };
     if (cfg.stage) person.stage = cfg.stage;
