@@ -114,7 +114,7 @@ footer b{color:#bdb5a4;font-weight:500}
 
         <div class="thanks" id="thanks">
           <h2>It's on its way.</h2>
-          <p id="thanksline">Your copy is downloading now and a link is headed to your inbox.</p>
+          <p id="thanksline">Your copy is opening now.</p>
           <a class="btn" id="dl" href="downloads/guide.pdf" download>Download the guide</a>
           <div class="or">While you're here</div>
           <a class="btn gold" id="fello" href="#FELLO_HOME_VALUE_URL" target="_blank" rel="noopener">What's my home worth today?</a>
@@ -194,7 +194,7 @@ $("coverimg").src=`covers/${o.cover}.png`; $("covername").textContent=o.name; $(
 $("formtitle").textContent=o.form; $("submit").textContent=o.btn; $("dl").textContent=o.dl; $("dl").href=`downloads/${o.file}`;
 $("whyh").textContent=o.whyh; $("whyp").textContent=o.whyp;
 $("cols").innerHTML=o.cols.map(c=>`<div class="col"><b><span>${c[0]}</span>${c[1]}</b><p>${c[2]}</p></div>`).join("");
-$("fello").href=FELLO_URL; document.title=o.name.replace(/<[^>]+>/g,"")+" · Deborah Maciel & Belia Martinez";
+$("fello").href=FELLO_URL; if(LEAD_ENDPOINT){ $("thanksline").textContent="Your copy is opening now, and we've emailed you the link so you have it later."; } document.title=o.name.replace(/<[^>]+>/g,"")+" · Deborah Maciel & Belia Martinez";
 
 $("form").addEventListener("submit", async e=>{
   e.preventDefault();

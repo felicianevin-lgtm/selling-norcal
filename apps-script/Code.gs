@@ -1,6 +1,7 @@
 /**
  * Postcard QR landing pages -> Follow Up Boss (Belia's account), no Zapier.
- * Deploy as a Web App (Execute as: Me · Who has access: Anyone). Paste the /exec URL into
+ * Deploy as a Web App (Execute as: Me · Who has access: Anyone). Deploy from the Google account
+ * the guide emails should come FROM (team@norcaladmin.com is the sensible choice; replies go to info@deborahmaciel.com). Paste the /exec URL into
  * LEAD_ENDPOINT at the top of each landing page's <script>.
  *
  * ONE-TIME SETUP: Project Settings -> Script Properties -> add
@@ -13,6 +14,14 @@
  *          23 = Luxury Expired Action Plan (Deborah) Sends email right now
  */
 const FUB = 'https://api.followupboss.com/v1/';
+const SITE = 'https://selling-norcal.com';
+const DELIVER = {   // what each offer emails to the lead
+  guide:     { title: "Why Your Luxury Home Didn't Sell", file: 'guide.pdf' },
+  plan:      { title: 'The Second Launch: Our Marketing Plan', file: 'plan.pdf' },
+  checklist: { title: 'The Spring Relaunch Checklist', file: 'checklist.pdf' },
+  fallprep:  { title: 'The Fall Prep Guide', file: 'fallprep.pdf' },
+  report:    { title: 'Luxury Market Report', file: 'report.pdf' }
+};
 
 // Which offer -> which tags / stage / plan
 const OFFERS = {
@@ -67,6 +76,24 @@ function doPost(e) {
         method: 'post', contentType: 'application/json', headers: auth, muteHttpExceptions: true,
         payload: JSON.stringify({ personId: id, actionPlanId: cfg.plan })
       });
+    }
+    // Email the lead their copy (skipped for the plain contact form)
+    const dl = DELIVER[d.offer];
+    if (dl && d.email) {
+      try {
+        MailApp.sendEmail({
+          to: d.email,
+          replyTo: 'info@deborahmaciel.com',
+          name: 'Deborah Maciel & Belia Martinez',
+          subject: 'Your copy: ' + dl.title,
+          htmlBody: '<p>Hi ' + (first || 'there') + ',</p>' +
+            '<p>Thank you for requesting <b>' + dl.title + '</b>. Here is your copy:</p>' +
+            '<p><a href="' + SITE + '/downloads/' + dl.file + '">' + SITE + '/downloads/' + dl.file + '</a></p>' +
+            '<p>If you would like to know what your home is worth today, reply to this email or call or text Deborah at (209) 207-2084 or Belia at (925) 518-7500.</p>' +
+            '<p>Deborah Maciel &amp; Belia Martinez<br>REALTORS&reg; &middot; eXp Luxury</p>' +
+            '<p style="font-size:11px;color:#777">Deborah Maciel, DRE 01997178, eXp Realty of Northern California, Inc., DRE 02188495 &middot; Belia Martinez, DRE 01705381, eXp Realty of California, Inc., DRE 01878277 &middot; Equal Housing Opportunity. This is not intended as a solicitation if your property is currently listed with another broker. To stop receiving email, reply with the word unsubscribe.</p>'
+        });
+      } catch (mailErr) {}
     }
     return out_({ ok: true, id: id });
   } catch (err) {
