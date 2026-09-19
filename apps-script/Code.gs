@@ -11,17 +11,21 @@
  *   stage  "Expired Luxury - Partners In Luxury"
  *   plans  24 = Luxury Expired Action Plan (Belia) Sends email right now
  *          23 = Luxury Expired Action Plan (Deborah) Sends email right now
+ *          30-35 = the QR guide plans + Website Contact (built 9/19/2026, see constants below)
+ * Rule (doc 06): one QR plan per person. A second form submission adds the tags + a note but does not
+ * enroll a second QR plan (the first plan already sends the other pieces on day 7/14).
  */
 const FUB = 'https://api.followupboss.com/v1/';
 
-// FUB action plan IDs — fill in after the six plans are built in FUB (Settings -> Action Plans; the ID is in the URL).
+// FUB action plan IDs — created by API 9/19/2026 in Belia's account (beliam-homes). Admin -> Action Plans.
 // The guide itself is emailed by the plan's Day-0 step, from Belia's FUB email. This script only tags + enrolls.
-const PLAN_ID_QR_DIDNT_SELL       = null;
-const PLAN_ID_QR_SECOND_LAUNCH    = null;
-const PLAN_ID_QR_SPRING_CHECKLIST = null;
-const PLAN_ID_QR_FALL_PREP        = null;
-const PLAN_ID_QR_MARKET_REPORT    = null;
-const PLAN_ID_WEBSITE_CONTACT     = null;
+const PLAN_ID_QR_DIDNT_SELL       = 30;   // "QR: Didn't Sell Guide"
+const PLAN_ID_QR_SECOND_LAUNCH    = 31;   // "QR: Second Launch Plan"
+const PLAN_ID_QR_SPRING_CHECKLIST = 32;   // "QR: Spring Checklist"
+const PLAN_ID_QR_FALL_PREP        = 33;   // "QR: Fall Prep"
+const PLAN_ID_QR_MARKET_REPORT    = 34;   // "QR: Market Report"
+const PLAN_ID_WEBSITE_CONTACT     = 35;   // "Website Contact"
+const QR_PLAN_IDS = [PLAN_ID_QR_DIDNT_SELL, PLAN_ID_QR_SECOND_LAUNCH, PLAN_ID_QR_SPRING_CHECKLIST, PLAN_ID_QR_FALL_PREP, PLAN_ID_QR_MARKET_REPORT];
 
 // Which offer -> which tags / stage / plan
 const OFFERS = {
@@ -49,9 +53,8 @@ function doPost(e) {
       phones: d.phone ? [{ value: d.phone, type: 'mobile' }] : [],
       addresses: d.address ? [{ street: addr[0] || '', city: addr[1] || '', state: 'CA' }] : [],
       tags: cfg.tags,
-      source: d.offer === 'contact' ? 'Website' : 'Postcard QR',
-      type: 'Seller'
-    };
+      source: d.offer === 'contact' ? 'Website' : 'Postcard QR'
+    };   // NOTE: FUB rejects a 'type' field on people (tested 9/19/2026); seller-ness is carried by tags + stage
     if (cfg.stage) person.stage = cfg.stage;
 
     const auth = { Authorization: 'Basic ' + Utilities.base64Encode(key + ':'), 'X-System': 'NorCalAdmin-LandingPage' };
@@ -70,20 +73,43 @@ function doPost(e) {
         body: 'Requested: ' + (d.offer || 'guide') + '\nProperty: ' + (d.address || '') + '\nConsent to call/text: ' + (d.consent ? 'YES' : 'no') + '\nPage: ' + (d.page || '') + '\nSubmitted: ' + (d.ts || new Date().toISOString()) })
     });
 
-    // Enroll in the action plan for expired-list offers
+    // Enroll in this offer's action plan (one QR plan per person; Website Contact always enrolls)
+    let enrolled = false, skipped = null;
     if (cfg.plan) {
-      UrlFetchApp.fetch(FUB + 'actionPlansPeople', {
-        method: 'post', contentType: 'application/json', headers: auth, muteHttpExceptions: true,
-        payload: JSON.stringify({ personId: id, actionPlanId: cfg.plan })
-      });
+      const already = QR_PLAN_IDS.indexOf(cfg.plan) >= 0 ? currentQrPlan_(id, auth) : null;
+      if (already) {
+        skipped = already;
+        UrlFetchApp.fetch(FUB + 'notes', {
+          method: 'post', contentType: 'application/json', headers: auth, muteHttpExceptions: true,
+          payload: JSON.stringify({ personId: id, subject: 'Second QR request: ' + d.offer,
+            body: 'Also requested "' + d.offer + '" but is already in QR plan ' + already + '. Not re-enrolled (one QR plan per person). Send the piece by hand if they ask.' })
+        });
+      } else {
+        const e = UrlFetchApp.fetch(FUB + 'actionPlansPeople', {
+          method: 'post', contentType: 'application/json', headers: auth, muteHttpExceptions: true,
+          payload: JSON.stringify({ personId: id, actionPlanId: cfg.plan })
+        });
+        enrolled = e.getResponseCode() < 300;
+      }
     }
-    return out_({ ok: true, id: id });
+    return out_({ ok: true, id: id, enrolled: enrolled, alreadyInPlan: skipped });
   } catch (err) {
     return out_({ ok: false, error: String(err) });
   }
 }
 
 function doGet() { return out_({ ok: true, service: 'postcard-qr-to-fub' }); }
+
+// Returns the id of a QR plan the person is already in (running or finished), else null
+function currentQrPlan_(personId, auth) {
+  try {
+    const r = UrlFetchApp.fetch(FUB + 'actionPlansPeople?personId=' + personId + '&limit=100', { headers: auth, muteHttpExceptions: true });
+    const b = JSON.parse(r.getContentText() || '{}');
+    const list = b.actionplanspeople || b.actionPlansPeople || [];
+    for (let i = 0; i < list.length; i++) if (QR_PLAN_IDS.indexOf(list[i].actionPlanId) >= 0) return list[i].actionPlanId;
+  } catch (err) {}
+  return null;
+}
 
 function out_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
