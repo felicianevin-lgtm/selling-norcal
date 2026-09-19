@@ -57,7 +57,7 @@ function doPost(e) {
     // Note with the details the ISAs / agents want to see
     UrlFetchApp.fetch(FUB + 'notes', {
       method: 'post', contentType: 'application/json', headers: auth, muteHttpExceptions: true,
-      payload: JSON.stringify({ personId: id, subject: 'Postcard QR: ' + (d.offer || 'guide'),
+      payload: JSON.stringify({ personId: id, subject: (d.offer === 'contact' ? 'Website contact' : 'Postcard QR: ' + d.offer),
         body: 'Requested: ' + (d.offer || 'guide') + '\nProperty: ' + (d.address || '') + '\nConsent to call/text: ' + (d.consent ? 'YES' : 'no') + '\nPage: ' + (d.page || '') + '\nSubmitted: ' + (d.ts || new Date().toISOString()) })
     });
 
