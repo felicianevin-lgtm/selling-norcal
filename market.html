@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>East Bay Luxury Market, This Quarter</title>
+<meta name="description" content="What luxury homes actually sold for this quarter in Pleasanton, Danville, Walnut Creek, Livermore, Lamorinda and Discovery Bay. Updated quarterly by Deborah Maciel and Belia Martinez, REALTORS® with eXp Luxury.">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0b0b0b;--gold:#c9a862;--gold-dk:#a8894a;--cream:#f4efe6;--paper:#fff;--muted:#6b6b6b;--line:#e3ddd0}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{font-family:'Montserrat',Arial,sans-serif;color:#1d1d1d;background:var(--cream);line-height:1.55}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+.hero{background:var(--ink);color:#fff;position:relative;overflow:hidden}
+.hero .bg{position:absolute;inset:0;background:radial-gradient(ellipse at 75% 20%,#3a2f1a 0%,#151311 45%,#060606 100%)}
+.hero .wrap{position:relative;padding:28px 20px 40px}
+.hero .logo{width:190px;display:block;margin-bottom:30px}
+.kick{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+h1{font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;font-size:clamp(34px,6vw,56px);line-height:1.02;margin:0 0 14px;max-width:16ch}
+h1 em{font-style:italic;color:var(--gold)}
+.lead{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(18px,2.4vw,22px);color:#e6e0d2;max-width:52ch;margin:0 0 18px}
+.asof{display:inline-block;border:1px solid var(--gold);color:var(--gold);font-size:11px;letter-spacing:.2em;text-transform:uppercase;padding:6px 10px}
+.picker{position:sticky;top:0;background:var(--cream);border-bottom:1px solid var(--line);z-index:5}
+.picker .wrap{display:flex;gap:6px;flex-wrap:wrap;padding:12px 20px}
+.picker a{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);text-decoration:none;border:1px solid var(--line);padding:7px 11px;background:#fff}
+.picker a:hover{border-color:var(--gold)}
+.city{padding:40px 0;border-bottom:1px solid var(--line)}
+.city h2{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:32px;margin:0 0 4px;color:var(--ink)}
+.city .sub{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold-dk);margin-bottom:18px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:0 0 18px}
+@media(min-width:700px){.stats{grid-template-columns:repeat(4,1fr)}}
+.stat{background:#fff;border-left:2px solid var(--gold);padding:12px 14px}
+.stat b{display:block;font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:30px;line-height:1;color:var(--ink)}
+.stat span{display:block;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.insight{font-size:14px;color:#333;max-width:70ch;margin:0 0 6px}
+.cta{margin-top:18px;display:flex;gap:10px;flex-wrap:wrap}
+.btn{display:inline-block;padding:13px 18px;background:var(--ink);color:#fff;font-size:12px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;text-decoration:none}
+.btn.gold{background:var(--gold);color:var(--ink)}
+footer{background:var(--ink);color:#8a8a8a;padding:26px 0 34px;font-size:10.5px;line-height:1.6}
+footer b{color:#bdb5a4;font-weight:500}footer a{color:#bdb5a4}
+footer .eho{display:inline-block;width:12px;height:12px;vertical-align:middle;margin-right:5px;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M50 8 L8 42 L18 42 L18 92 L82 92 L82 42 L92 42 Z' fill='none' stroke='%238a8a8a' stroke-width='7' stroke-linejoin='round'/><rect x='32' y='50' width='36' height='8' fill='%238a8a8a'/><rect x='32' y='66' width='36' height='8' fill='%238a8a8a'/></svg>") center/contain no-repeat}
+</style>
+</head>
+<body>
+<section class="hero"><div class="bg"></div><div class="wrap">
+  <img class="logo" src="logo-white.png" alt="Deborah Maciel · Belia Martinez · eXp Realty | Luxury">
+  <div class="kick">East Bay luxury · homes over $1.5M</div>
+  <h1>What luxury homes <em>actually sold for</em> this quarter.</h1>
+  <p class="lead">Real closed sales, not headlines, for each area we work in. Rebuilt every quarter. Pick your city below, then ask us what it means for your home.</p>
+  <span class="asof" id="asof">Updated [Month Day, Year] · [Q3 2026] · MLS closed sales [start] to [end]</span>
+</div></section>
+
+<nav class="picker"><div class="wrap">
+  <a href="#pleasanton">Pleasanton</a><a href="#danville">Danville · Alamo · Diablo</a><a href="#walnut-creek">Walnut Creek</a><a href="#livermore">Livermore · Dublin</a><a href="#lamorinda">Lafayette · Orinda · Moraga</a><a href="#discovery-bay">Discovery Bay · Brentwood</a>
+</div></nav>
+
+<div class="wrap" id="cities"></div>
+
+<footer><div class="wrap">
+  <b>Deborah Maciel</b> · DRE 01997178 · eXp Realty of Northern California, Inc., DRE 02188495, 915 Highland Pointe Dr Ste 250, Roseville, CA 95678<br>
+  <b>Belia Martinez</b> · DRE 01705381 · eXp Realty of California, Inc., DRE 01878277, 2603 Camino Ramon Ste 200, San Ramon, CA 94583<br>
+  <span class="eho"></span>Equal Housing Opportunity. This is not intended as a solicitation if your property is currently listed with another broker or if you are currently working with a licensed real estate professional. Market statistics are based on information from the MLS as of the date shown, are deemed reliable but not guaranteed, and cover single-family closed sales over $1.5M. <a href="/privacy">Privacy</a>
+</div></footer>
+
+<script>
+// ---- QUARTERLY UPDATE: edit the numbers below and the "Updated" line above. Everything else is automatic. ----
+const FELLO_URL = "#FELLO_HOME_VALUE_URL";
+const CITIES = [
+ {id:"pleasanton", name:"Pleasanton", sub:"Ruby Hill · Kottinger Ranch · Vintage Hills · Golden Eagle", closed:"[24]", avg:"[$2.4M]", days:"[31]", pct:"[97%]", expired:"[9]",
+  insights:["[Updated homes sold in under three weeks. Homes that needed work sat past sixty days.]","[Nearly one in three luxury listings came off the market without selling, almost all priced against active listings rather than closed sales.]"]},
+ {id:"danville", name:"Danville · Alamo · Diablo", sub:"Blackhawk · Westside · Alamo Oaks · Diablo Country Club", closed:"[ ]", avg:"[ ]", days:"[ ]", pct:"[ ]", expired:"[ ]", insights:["[Insight]","[Insight]"]},
+ {id:"walnut-creek", name:"Walnut Creek", sub:"Northgate · Saranap · Tice Valley · Rossmoor-adjacent", closed:"[ ]", avg:"[ ]", days:"[ ]", pct:"[ ]", expired:"[ ]", insights:["[Insight]","[Insight]"]},
+ {id:"livermore", name:"Livermore · Dublin", sub:"South Livermore wine country · Dublin Ranch · Positano", closed:"[ ]", avg:"[ ]", days:"[ ]", pct:"[ ]", expired:"[ ]", insights:["[Insight]","[Insight]"]},
+ {id:"lamorinda", name:"Lafayette · Orinda · Moraga", sub:"Happy Valley · Sleepy Hollow · Moraga Country Club", closed:"[ ]", avg:"[ ]", days:"[ ]", pct:"[ ]", expired:"[ ]", insights:["[Insight]","[Insight]"]},
+ {id:"discovery-bay", name:"Discovery Bay · Brentwood", sub:"Deep water · Lakeshore · Trilogy-adjacent", closed:"[ ]", avg:"[ ]", days:"[ ]", pct:"[ ]", expired:"[ ]", insights:["[Insight]","[Insight]"]},
+];
+document.getElementById("cities").innerHTML = CITIES.map(c=>`
+<section class="city" id="${c.id}">
+  <h2>${c.name}</h2><div class="sub">${c.sub}</div>
+  <div class="stats">
+    <div class="stat"><b>${c.closed}</b><span>homes closed over $1.5M</span></div>
+    <div class="stat"><b>${c.avg}</b><span>average sale price</span></div>
+    <div class="stat"><b>${c.days}</b><span>average days on market</span></div>
+    <div class="stat"><b>${c.pct}</b><span>of list price</span></div>
+  </div>
+  <p class="insight"><b>${c.expired}</b> listings over $1.5M came off the market without selling this quarter.</p>
+  ${c.insights.map(i=>`<p class="insight">${i}</p>`).join("")}
+  <div class="cta"><a class="btn gold" href="${FELLO_URL}" target="_blank" rel="noopener">What's my home worth today?</a><a class="btn" href="/luxury-market-report">Get the full report</a></div>
+</section>`).join("");
+</script>
+</body></html>
