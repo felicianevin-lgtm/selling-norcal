@@ -1,15 +1,18 @@
 /**
- * Postcard QR landing pages -> Follow Up Boss (Belia's account), no Zapier.
- * Deploy as a Web App (Execute as: Me · Who has access: Anyone). Paste the /exec URL into
- * LEAD_ENDPOINT at the top of each landing page's <script>.
+ * Postcard QR landing pages -> Google Sheet log (always) -> Follow Up Boss (Belia's account, only once the key is set).
+ * No Zapier. Deploy as a Web App (Execute as: Me · Who has access: Anyone) from team@norcaladmin.com.
+ * Paste the /exec URL into LEAD_ENDPOINT at the top of each landing page's <script>.
  *
- * ONE-TIME SETUP: Project Settings -> Script Properties -> add
- *   FUB_API_KEY = <Belia's Follow Up Boss API key>      (never put the key in the HTML)
+ * TWO MODES, switched by one Script Property:
+ *   LOG ONLY (default)  – no FUB_API_KEY property set. Every submission is appended to the log sheet and
+ *                         nothing is sent to Follow Up Boss. Use this for test submissions.
+ *   LIVE                – Project Settings -> Script Properties -> add FUB_API_KEY = <Belia's Follow Up Boss API key>.
+ *                         Every submission is logged AND created/merged in FUB, tagged, staged, and enrolled in
+ *                         its plan. Remove the property to go back to log-only. (Never put the key in the HTML.)
  *
- * PAPER TRAIL: every submission is also appended to a Google Sheet ("Selling NorCal - Lead Log") in the
- * Drive of the account that deployed the script (team@norcaladmin.com). The sheet is created on the first
- * submission; open the /exec URL in a browser (doGet) to see its link. To use a sheet you made yourself,
- * add Script Property LOG_SHEET_ID = <that sheet's id>.
+ * LOG SHEET: "Website Lead Log - selling-norcal.com" in team@norcaladmin's Drive, folder Expired Remarketing.
+ *   https://docs.google.com/spreadsheets/d/1aLj9sQPSHYT_iFWt2J2L9dx_zepK28XvC4yVSpsNML8/edit
+ *   The script writes the header row itself on first use. Every submission = one row, including the FUB result.
  *
  * Verified in FUB on 9/18/2026:
  *   tags   "Partners In Luxury", "Expired Luxury", "Luxury"
@@ -21,6 +24,12 @@
  * enroll a second QR plan (the first plan already sends the other pieces on day 7/14).
  */
 const FUB = 'https://api.followupboss.com/v1/';
+
+// Log sheet (team@norcaladmin Drive > Expired Remarketing). Created 9/22/2026.
+const LOG_SHEET_ID = '1aLj9sQPSHYT_iFWt2J2L9dx_zepK28XvC4yVSpsNML8';
+const LOG_TAB      = 'Leads';
+const LOG_HEADERS  = ['Timestamp', 'Offer', 'Name', 'Email', 'Phone', 'Address', 'Interest', 'Message',
+                      'Consent to call/text', 'Page', 'Source (postcard)', 'FUB result', 'FUB person id'];
 
 // FUB action plan IDs — created by API 9/19/2026 in Belia's account (beliam-homes). Admin -> Action Plans.
 // The guide itself is emailed by the plan's Day-0 step, from Belia's FUB email. This script only tags + enrolls.
@@ -43,11 +52,33 @@ const OFFERS = {
 };
 
 function doPost(e) {
+  let d = {};
+  try { d = JSON.parse((e && e.postData && e.postData.contents) || '{}'); } catch (err) { d = {}; }
+  const offer = OFFERS[d.offer] ? d.offer : 'guide';
+  const src = ((d.page || '').match(/[?&]src=([^&#]+)/) || [])[1] || (offer === 'contact' ? 'website' : '');
+
+  // 1) Follow Up Boss — only when the key is present (LIVE mode). Otherwise log-only.
+  const key = PropertiesService.getScriptProperties().getProperty('FUB_API_KEY');
+  let fub = { result: 'not sent (log-only mode: FUB_API_KEY not set)', id: '' };
+  if (key) fub = sendToFub_(d, offer, key);
+
+  // 2) Paper trail — every submission, whatever happened with FUB.
+  let logged = false;
   try {
-    const d = JSON.parse(e.postData.contents || '{}');
-    const key = PropertiesService.getScriptProperties().getProperty('FUB_API_KEY');
-    if (!key) return out_({ ok: false, error: 'FUB_API_KEY not set' });
-    const cfg = OFFERS[d.offer] || OFFERS.guide;
+    logToSheet_([new Date(), offer, d.name || '', d.email || '', d.phone || '', d.address || '', d.interest || '',
+                 d.message || '', d.consent ? 'YES' : 'no', d.page || '', src, fub.result, fub.id]);
+    logged = true;
+  } catch (err) { fub.result += ' | LOG ERROR ' + err; }
+
+  return out_({ ok: true, logged: logged, fub: fub.result, id: fub.id });
+}
+
+function doGet() { return out_({ ok: true, service: 'postcard-qr-to-fub', mode: PropertiesService.getScriptProperties().getProperty('FUB_API_KEY') ? 'live' : 'log-only' }); }
+
+// ---- Follow Up Boss -------------------------------------------------------------------------------
+function sendToFub_(d, offer, key) {
+  try {
+    const cfg = OFFERS[offer];
     const name = (d.name || '').trim().split(/\s+/);
     const first = name.shift() || '', last = name.join(' ');
     const addr = (d.address || '').split(',').map(s => s.trim());
@@ -58,7 +89,7 @@ function doPost(e) {
       phones: d.phone ? [{ value: d.phone, type: 'mobile' }] : [],
       addresses: d.address ? [{ street: addr[0] || '', city: addr[1] || '', state: 'CA' }] : [],
       tags: cfg.tags,
-      source: d.offer === 'contact' ? 'Website' : 'Postcard QR'
+      source: offer === 'contact' ? 'Website' : 'Postcard QR'
     };   // NOTE: FUB rejects a 'type' field on people (tested 9/19/2026); seller-ness is carried by tags + stage
     if (cfg.stage) person.stage = cfg.stage;
 
@@ -69,78 +100,38 @@ function doPost(e) {
     });
     const body = JSON.parse(r.getContentText() || '{}');
     const id = body.id;
-    if (!id) { logToSheet_(d, { ok: false, error: 'FUB create failed ' + r.getResponseCode() }); return out_({ ok: false, error: 'FUB create failed', status: r.getResponseCode(), body: body }); }
+    if (!id) return { result: 'FUB ERROR ' + r.getResponseCode() + ' ' + (body.errorMessage || r.getContentText()).slice(0, 200), id: '' };
 
     // Note with the details the ISAs / agents want to see
     UrlFetchApp.fetch(FUB + 'notes', {
       method: 'post', contentType: 'application/json', headers: auth, muteHttpExceptions: true,
-      payload: JSON.stringify({ personId: id, subject: (d.offer === 'contact' ? 'Website contact' : 'Postcard QR: ' + d.offer),
-        body: 'Requested: ' + (d.offer || 'guide') + '\nProperty: ' + (d.address || '') + (d.interest ? '\nInterest: ' + d.interest : '') + (d.message ? '\nMessage: ' + d.message : '') + '\nConsent to call/text: ' + (d.consent ? 'YES' : 'no') + '\nPage: ' + (d.page || '') + '\nSubmitted: ' + (d.ts || new Date().toISOString()) })
+      payload: JSON.stringify({ personId: id, subject: (offer === 'contact' ? 'Website contact' : 'Postcard QR: ' + offer),
+        body: 'Requested: ' + offer + '\nProperty: ' + (d.address || '') + (d.interest ? '\nInterest: ' + d.interest : '') + (d.message ? '\nMessage: ' + d.message : '') + '\nConsent to call/text: ' + (d.consent ? 'YES' : 'no') + '\nPage: ' + (d.page || '') + '\nSubmitted: ' + (d.ts || new Date().toISOString()) })
     });
 
     // Enroll in this offer's action plan (one QR plan per person; Website Contact always enrolls)
-    let enrolled = false, skipped = null;
+    let result = 'created/merged';
     if (cfg.plan) {
       const already = QR_PLAN_IDS.indexOf(cfg.plan) >= 0 ? currentQrPlan_(id, auth) : null;
       if (already) {
-        skipped = already;
         UrlFetchApp.fetch(FUB + 'notes', {
           method: 'post', contentType: 'application/json', headers: auth, muteHttpExceptions: true,
-          payload: JSON.stringify({ personId: id, subject: 'Second QR request: ' + d.offer,
-            body: 'Also requested "' + d.offer + '" but is already in QR plan ' + already + '. Not re-enrolled (one QR plan per person). Send the piece by hand if they ask.' })
+          payload: JSON.stringify({ personId: id, subject: 'Second QR request: ' + offer,
+            body: 'Also requested "' + offer + '" but is already in QR plan ' + already + '. Not re-enrolled (one QR plan per person). Send the piece by hand if they ask.' })
         });
+        result += ', already in plan ' + already + ' (not re-enrolled)';
       } else {
-        const e = UrlFetchApp.fetch(FUB + 'actionPlansPeople', {
+        const en = UrlFetchApp.fetch(FUB + 'actionPlansPeople', {
           method: 'post', contentType: 'application/json', headers: auth, muteHttpExceptions: true,
           payload: JSON.stringify({ personId: id, actionPlanId: cfg.plan })
         });
-        enrolled = e.getResponseCode() < 300;
+        result += en.getResponseCode() < 300 ? ', enrolled in plan ' + cfg.plan : ', plan enroll FAILED ' + en.getResponseCode();
       }
     }
-    logToSheet_(d, { ok: true, fubId: id, enrolled: enrolled, alreadyInPlan: skipped });
-    return out_({ ok: true, id: id, enrolled: enrolled, alreadyInPlan: skipped });
+    return { result: result, id: String(id) };
   } catch (err) {
-    try { logToSheet_(JSON.parse(e.postData.contents || '{}'), { ok: false, error: String(err) }); } catch (e2) {}
-    return out_({ ok: false, error: String(err) });
+    return { result: 'FUB ERROR ' + err, id: '' };
   }
-}
-
-function doGet() {
-  let sheet = null;
-  try { sheet = getLogSheet_().getUrl(); } catch (err) { sheet = 'not created yet: ' + err; }
-  return out_({ ok: true, service: 'postcard-qr-to-fub', leadLog: sheet });
-}
-
-// ---- Lead log (Google Sheet paper trail) ----
-const LOG_HEADERS = ['Submitted', 'Offer', 'Name', 'Email', 'Phone', 'Address', 'Interest', 'Message', 'Consent', 'Page', 'FUB result', 'FUB person id', 'Enrolled in plan', 'Already in QR plan'];
-
-function getLogSheet_() {
-  const props = PropertiesService.getScriptProperties();
-  let id = props.getProperty('LOG_SHEET_ID');
-  let ss = null;
-  if (id) { try { ss = SpreadsheetApp.openById(id); } catch (err) { ss = null; } }
-  if (!ss) {
-    ss = SpreadsheetApp.create('Selling NorCal - Lead Log');
-    props.setProperty('LOG_SHEET_ID', ss.getId());
-  }
-  let sh = ss.getSheetByName('Leads');
-  if (!sh) {
-    sh = ss.getSheets()[0]; sh.setName('Leads');
-    sh.getRange(1, 1, 1, LOG_HEADERS.length).setValues([LOG_HEADERS]).setFontWeight('bold');
-    sh.setFrozenRows(1);
-  }
-  return ss;
-}
-
-function logToSheet_(d, result) {
-  try {
-    const sh = getLogSheet_().getSheetByName('Leads');
-    sh.appendRow([
-      d.ts || new Date().toISOString(), d.offer || '', d.name || '', d.email || '', d.phone || '', d.address || '',
-      d.interest || '', d.message || '', d.consent ? 'YES' : 'no', d.page || '',
-      result.ok ? 'OK' : ('ERROR: ' + result.error), result.fubId || '', result.enrolled ? 'yes' : 'no', result.alreadyInPlan || ''
-    ]);
-  } catch (err) { Logger.log('log sheet failed: ' + err); }
 }
 
 // Returns the id of a QR plan the person is already in (running or finished), else null
@@ -154,13 +145,33 @@ function currentQrPlan_(personId, auth) {
   return null;
 }
 
+// ---- Log sheet ----------------------------------------------------------------------------------
+function logToSheet_(row) {
+  const ss = SpreadsheetApp.openById(LOG_SHEET_ID);
+  let sh = ss.getSheetByName(LOG_TAB);
+  if (!sh) { sh = ss.getSheets()[0]; sh.setName(LOG_TAB); }
+  if (sh.getLastRow() === 0 || String(sh.getRange(1, 1).getValue()).trim() !== LOG_HEADERS[0]) {
+    sh.insertRowBefore(1);
+    sh.getRange(1, 1, 1, LOG_HEADERS.length).setValues([LOG_HEADERS]).setFontWeight('bold');
+    sh.setFrozenRows(1);
+  }
+  sh.appendRow(row);
+}
+
 function out_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
 
-// Run once from the editor to confirm the key works (check the log for the account name)
+// Run once from the editor: writes one test row to the log sheet (no FUB call) so you can see the trail works.
+function testLogSheet() {
+  logToSheet_([new Date(), 'test', 'Test Row', 'test@example.com', '', '', '', 'from testLogSheet()', 'no', 'editor', '', 'not sent (editor test)', '']);
+  Logger.log('Row written to ' + 'https://docs.google.com/spreadsheets/d/' + LOG_SHEET_ID);
+}
+
+// Run once from the editor to confirm the FUB key works (check the log for the account name)
 function testIdentity() {
   const key = PropertiesService.getScriptProperties().getProperty('FUB_API_KEY');
+  if (!key) { Logger.log('No FUB_API_KEY set: log-only mode.'); return; }
   const r = UrlFetchApp.fetch(FUB + 'identity', { headers: { Authorization: 'Basic ' + Utilities.base64Encode(key + ':'), 'X-System': 'NorCalAdmin-LandingPage' } });
   Logger.log(r.getContentText());
 }
