@@ -6,6 +6,11 @@
  * ONE-TIME SETUP: Project Settings -> Script Properties -> add
  *   FUB_API_KEY = <Belia's Follow Up Boss API key>      (never put the key in the HTML)
  *
+ * PAPER TRAIL: every submission is also appended to a Google Sheet ("Selling NorCal - Lead Log") in the
+ * Drive of the account that deployed the script (team@norcaladmin.com). The sheet is created on the first
+ * submission; open the /exec URL in a browser (doGet) to see its link. To use a sheet you made yourself,
+ * add Script Property LOG_SHEET_ID = <that sheet's id>.
+ *
  * Verified in FUB on 9/18/2026:
  *   tags   "Partners In Luxury", "Expired Luxury", "Luxury"
  *   stage  "Expired Luxury - Partners In Luxury"
@@ -64,7 +69,7 @@ function doPost(e) {
     });
     const body = JSON.parse(r.getContentText() || '{}');
     const id = body.id;
-    if (!id) return out_({ ok: false, error: 'FUB create failed', status: r.getResponseCode(), body: body });
+    if (!id) { logToSheet_(d, { ok: false, error: 'FUB create failed ' + r.getResponseCode() }); return out_({ ok: false, error: 'FUB create failed', status: r.getResponseCode(), body: body }); }
 
     // Note with the details the ISAs / agents want to see
     UrlFetchApp.fetch(FUB + 'notes', {
@@ -92,13 +97,51 @@ function doPost(e) {
         enrolled = e.getResponseCode() < 300;
       }
     }
+    logToSheet_(d, { ok: true, fubId: id, enrolled: enrolled, alreadyInPlan: skipped });
     return out_({ ok: true, id: id, enrolled: enrolled, alreadyInPlan: skipped });
   } catch (err) {
+    try { logToSheet_(JSON.parse(e.postData.contents || '{}'), { ok: false, error: String(err) }); } catch (e2) {}
     return out_({ ok: false, error: String(err) });
   }
 }
 
-function doGet() { return out_({ ok: true, service: 'postcard-qr-to-fub' }); }
+function doGet() {
+  let sheet = null;
+  try { sheet = getLogSheet_().getUrl(); } catch (err) { sheet = 'not created yet: ' + err; }
+  return out_({ ok: true, service: 'postcard-qr-to-fub', leadLog: sheet });
+}
+
+// ---- Lead log (Google Sheet paper trail) ----
+const LOG_HEADERS = ['Submitted', 'Offer', 'Name', 'Email', 'Phone', 'Address', 'Interest', 'Message', 'Consent', 'Page', 'FUB result', 'FUB person id', 'Enrolled in plan', 'Already in QR plan'];
+
+function getLogSheet_() {
+  const props = PropertiesService.getScriptProperties();
+  let id = props.getProperty('LOG_SHEET_ID');
+  let ss = null;
+  if (id) { try { ss = SpreadsheetApp.openById(id); } catch (err) { ss = null; } }
+  if (!ss) {
+    ss = SpreadsheetApp.create('Selling NorCal - Lead Log');
+    props.setProperty('LOG_SHEET_ID', ss.getId());
+  }
+  let sh = ss.getSheetByName('Leads');
+  if (!sh) {
+    sh = ss.getSheets()[0]; sh.setName('Leads');
+    sh.getRange(1, 1, 1, LOG_HEADERS.length).setValues([LOG_HEADERS]).setFontWeight('bold');
+    sh.setFrozenRows(1);
+  }
+  return ss;
+}
+
+function logToSheet_(d, result) {
+  try {
+    const sh = getLogSheet_().getSheetByName('Leads');
+    sh.appendRow([
+      d.ts || new Date().toISOString(), d.offer || '', d.name || '', d.email || '', d.phone || '', d.address || '',
+      d.interest || '', d.message || '', d.consent ? 'YES' : 'no', d.page || '',
+      result.ok ? 'OK' : ('ERROR: ' + result.error), result.fubId || '', result.enrolled ? 'yes' : 'no', result.alreadyInPlan || ''
+    ]);
+  } catch (err) { Logger.log('log sheet failed: ' + err); }
+}
 
 // Returns the id of a QR plan the person is already in (running or finished), else null
 function currentQrPlan_(personId, auth) {
