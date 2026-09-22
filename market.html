@@ -66,13 +66,18 @@ footer .eho{display:inline-block;width:12px;height:12px;vertical-align:middle;ma
 // ---- QUARTERLY UPDATE: edit the numbers below and the "Updated" line above. Everything else is automatic. ----
 const FELLO_URL = "https://mslivermore.hifello.com/lp/674f49b122a206002e993885";
 const CITIES = [
- {id:"pleasanton", name:"Pleasanton", sub:"Ruby Hill · Kottinger Ranch · Vintage Hills · Golden Eagle", closed:"[24]", avg:"[$2.4M]", days:"[31]", pct:"[97%]", expired:"[9]",
-  insights:["[Updated homes sold in under three weeks. Homes that needed work sat past sixty days.]","[Nearly one in three luxury listings came off the market without selling, almost all priced against active listings rather than closed sales.]"]},
- {id:"danville", name:"Danville · Alamo · Diablo", sub:"Blackhawk · Westside · Alamo Oaks · Diablo Country Club", closed:"[ ]", avg:"[ ]", days:"[ ]", pct:"[ ]", expired:"[ ]", insights:["[Insight]","[Insight]"]},
- {id:"walnut-creek", name:"Walnut Creek", sub:"Northgate · Saranap · Tice Valley · Rossmoor-adjacent", closed:"[ ]", avg:"[ ]", days:"[ ]", pct:"[ ]", expired:"[ ]", insights:["[Insight]","[Insight]"]},
- {id:"livermore", name:"Livermore · Dublin", sub:"South Livermore wine country · Dublin Ranch · Positano", closed:"[ ]", avg:"[ ]", days:"[ ]", pct:"[ ]", expired:"[ ]", insights:["[Insight]","[Insight]"]},
- {id:"lamorinda", name:"Lafayette · Orinda · Moraga", sub:"Happy Valley · Sleepy Hollow · Moraga Country Club", closed:"[ ]", avg:"[ ]", days:"[ ]", pct:"[ ]", expired:"[ ]", insights:["[Insight]","[Insight]"]},
- {id:"discovery-bay", name:"Discovery Bay · Brentwood", sub:"Deep water · Lakeshore · Trilogy-adjacent", closed:"[ ]", avg:"[ ]", days:"[ ]", pct:"[ ]", expired:"[ ]", insights:["[Insight]","[Insight]"]},
+ {id:"pleasanton", name:"Pleasanton", sub:"Ruby Hill · Kottinger Ranch · Vintage Hills · Golden Eagle", closed:"63", avg:"$2.09M", days:"29", pct:"98.2%", expired:"42",
+  insights:["Six in ten sales closed within thirty days, and those homes brought 99.5% of asking. The ones that ran past thirty days settled closer to 96%.", "The listings that came off the market asked $2.63M on average. The homes that sold were listed at $2.13M on average. The gap was price, not demand."]},
+ {id:"danville", name:"Danville · Alamo · Diablo", sub:"Blackhawk · Westside · Alamo Oaks · Diablo Country Club", closed:"160", avg:"$2.77M", days:"27", pct:"99.7%", expired:"111",
+  insights:["Two out of three sales closed within thirty days, and those homes averaged 101.5% of asking. Homes that sat past sixty days closed near 96%.", "For every three homes that closed over $1.5M, two came off the market unsold. The unsold group asked $2.98M on average against $2.78M for the homes that sold."]},
+ {id:"walnut-creek", name:"Walnut Creek", sub:"Northgate · Saranap · Tice Valley · Rossmoor-adjacent", closed:"57", avg:"$1.94M", days:"27", pct:"100.5%", expired:"29",
+  insights:["Homes that sold in the first thirty days averaged 102.7% of asking. After sixty days the average dropped to about 95%.", "Listings that came off the market asked $2.16M on average. Listings that sold were priced at $1.93M on average and closed at a median of $1.76M."]},
+ {id:"livermore", name:"Livermore · Dublin", sub:"South Livermore wine country · Dublin Ranch · Positano", closed:"98", avg:"$2.01M", days:"29", pct:"98.4%", expired:"83",
+  insights:["Two-thirds of sales closed within thirty days at 99% of asking. The median sale was $1.86M, with South Livermore and Dublin Ranch homes leading the top of the range.", "Eighty-three listings over $1.5M came off the market against ninety-eight that sold. The unsold group was priced about the same as the homes that sold, so presentation and plan, not just price, made the difference here."]},
+ {id:"lamorinda", name:"Lafayette · Orinda · Moraga", sub:"Happy Valley · Sleepy Hollow · Moraga Country Club", closed:"103", avg:"$2.42M", days:"21", pct:"101.1%", expired:"58",
+  insights:["Eight in ten sales closed within thirty days at an average of 102.7% of asking. The median home was on the market eleven days.", "Even in the fastest market on this page, fifty-eight listings came off unsold. They asked $2.64M on average, against $2.40M for the homes that sold."]},
+ {id:"discovery-bay", name:"Discovery Bay · Brentwood", sub:"Deep water · Lakeshore · Trilogy-adjacent", closed:"5", avg:"$1.79M", days:"84", pct:"97.9%", expired:"6",
+  insights:["Only five homes closed over $1.5M this quarter, so treat these numbers as a small sample. Sales here took eighty-four days on average, about three times the East Bay pace.", "Six listings came off the market unsold, more than the number that closed. Waterfront and acreage homes over $1.5M need a buyer pool from outside the county, and that takes a plan to reach."]},
 ];
 document.getElementById("cities").innerHTML = CITIES.map(c=>`
 <section class="city" id="${c.id}">
