@@ -41,6 +41,9 @@ const PLAN_ID_QR_MARKET_REPORT    = 34;   // "QR: Market Report"
 const PLAN_ID_WEBSITE_CONTACT     = 35;   // "Website Contact"
 const QR_PLAN_IDS = [PLAN_ID_QR_DIDNT_SELL, PLAN_ID_QR_SECOND_LAUNCH, PLAN_ID_QR_SPRING_CHECKLIST, PLAN_ID_QR_FALL_PREP, PLAN_ID_QR_MARKET_REPORT];
 
+// ON HOLD 10/2/2026 (Deborah + Belia): the market report. Empty this list to bring it back.
+const PAUSED_OFFERS = ['report'];
+
 // Which offer -> which tags / stage / plan
 const OFFERS = {
   guide:     { tags: ['Partners In Luxury', 'Expired Luxury', 'QR Guide'],        stage: 'Expired Luxury - Partners In Luxury', plan: PLAN_ID_QR_DIDNT_SELL },
@@ -54,7 +57,8 @@ const OFFERS = {
 function doPost(e) {
   let d = {};
   try { d = JSON.parse((e && e.postData && e.postData.contents) || '{}'); } catch (err) { d = {}; }
-  const offer = OFFERS[d.offer] ? d.offer : 'guide';
+  let offer = OFFERS[d.offer] ? d.offer : 'guide';
+  if (PAUSED_OFFERS.indexOf(offer) >= 0) offer = 'contact';   // paused pieces are handled as a plain website contact
   const src = ((d.page || '').match(/[?&]src=([^&#]+)/) || [])[1] || (offer === 'contact' ? 'website' : '');
 
   // 1) Follow Up Boss — only when the key is present (LIVE mode). Otherwise log-only.
