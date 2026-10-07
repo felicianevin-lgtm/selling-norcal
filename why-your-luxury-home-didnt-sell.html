@@ -65,6 +65,11 @@ input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,
 .col b{display:block;font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:19px;color:var(--ink);margin-bottom:4px}
 .col b span{color:var(--gold);margin-right:6px;font-weight:400}
 .col p{font-size:13.5px;color:#444;margin:0}
+.watch{background:#fff;padding:40px 0;border-top:1px solid var(--line)}
+.watch .k{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold-dk);margin-bottom:8px}
+.watch h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:26px;margin:0 0 14px;color:var(--ink)}
+.watch video{display:block;width:100%;max-width:880px;aspect-ratio:16/9;background:#000;border:1px solid var(--line);box-shadow:0 18px 40px rgba(0,0,0,.18)}
+.watch p{font-size:12px;color:var(--muted);max-width:64ch;margin:10px 0 0}
 .agents{background:#fff;padding:40px 0;border-top:1px solid var(--line)}
 .agents .row{display:grid;grid-template-columns:1fr;gap:20px;align-items:center}
 @media(min-width:700px){.agents .row{grid-template-columns:1fr 1fr 1fr}}
@@ -122,6 +127,15 @@ footer b{color:#bdb5a4;font-weight:500}
         </div>
       </div>
     </div>
+  </div>
+</section>
+
+<section class="watch" id="video">
+  <div class="wrap">
+    <div class="k">Watch · 60 seconds</div>
+    <h3>It's not the house.</h3>
+    <video controls preload="none" playsinline poster="video/s1-its-not-the-house.jpg"><source src="video/s1-its-not-the-house.mp4" type="video/mp4"></video>
+    <p>Deborah Maciel, DRE 01997178, eXp Realty of Northern California, Inc., DRE 02188495 · Belia Martinez, DRE 01705381, eXp Realty of California, Inc., DRE 01878277</p>
   </div>
 </section>
 
