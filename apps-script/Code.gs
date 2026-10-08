@@ -46,13 +46,22 @@ const PAUSED_OFFERS = ['report'];
 
 // Which offer -> which tags / stage / plan
 const OFFERS = {
-  guide:     { tags: ['Partners In Luxury', 'Expired Luxury', 'QR Guide'],        stage: 'Expired Luxury - Partners In Luxury', plan: PLAN_ID_QR_DIDNT_SELL },
-  plan:      { tags: ['Partners In Luxury', 'Expired Luxury', 'QR Plan'],         stage: 'Expired Luxury - Partners In Luxury', plan: PLAN_ID_QR_SECOND_LAUNCH },
-  checklist: { tags: ['Partners In Luxury', 'Expired Luxury', 'QR Checklist'],    stage: 'Expired Luxury - Partners In Luxury', plan: PLAN_ID_QR_SPRING_CHECKLIST },
-  fallprep:  { tags: ['Partners In Luxury', 'Luxury', 'QR Fall Prep'],            stage: null, plan: PLAN_ID_QR_FALL_PREP },
-  report:    { tags: ['Partners In Luxury', 'Luxury', 'QR Market Report'],        stage: null, plan: PLAN_ID_QR_MARKET_REPORT },
-  contact:   { tags: ['Partners In Luxury', 'Website Contact'],                      stage: null, plan: PLAN_ID_WEBSITE_CONTACT }
+  guide:     { tags: ['Partners In Luxury', 'Expired Luxury', "Why Your Luxury Home Didn't Sell"], stage: 'Expired Luxury - Partners In Luxury', plan: PLAN_ID_QR_DIDNT_SELL },
+  plan:      { tags: ['Partners In Luxury', 'Expired Luxury', 'The Second Launch Plan'],            stage: 'Expired Luxury - Partners In Luxury', plan: PLAN_ID_QR_SECOND_LAUNCH },
+  checklist: { tags: ['Partners In Luxury', 'Expired Luxury', 'Spring Relaunch Checklist'],         stage: 'Expired Luxury - Partners In Luxury', plan: PLAN_ID_QR_SPRING_CHECKLIST },
+  fallprep:  { tags: ['Partners In Luxury', 'Luxury', 'Fall Prep Guide'],                           stage: null, plan: PLAN_ID_QR_FALL_PREP },
+  report:    { tags: ['Partners In Luxury', 'Luxury', 'Luxury Market Report'],                      stage: null, plan: PLAN_ID_QR_MARKET_REPORT },
+  contact:   { tags: ['Partners In Luxury', 'Website Contact'],                                      stage: null, plan: PLAN_ID_WEBSITE_CONTACT }
 };
+// Channel tag from the ?src= on the page URL: c1..c7 = that postcard, ad1.. = that StreetText ad, else website.
+const CHANNEL_TAGS = {
+  c1: 'Postcard 1 - Its Not the House', c2: 'Postcard 2 - Where Your Buyer Lives', c3: 'Postcard 3 - We Noticed',
+  c4: 'Postcard 4 - The Second Launch', c5: 'Postcard 5 - Spring Is Five Months Away', c6: 'Postcard 6 - Your Neighbors Are Asking',
+  c7: 'Postcard 7 - Market Update',
+  ad1: 'Ad 1 - Its Not the House', ad2: 'Ad 2 - The Second Launch', ad3: 'Ad 3 - Spring Is Five Months Away',
+  ad4: 'Ad 4 - Every Agent in Town', ad5: 'Ad 5 - Where the Buyer Lives', ad6: 'Ad 6 - Fall Prep'
+};
+function channelTag_(src) { return CHANNEL_TAGS[src] || (src ? 'Ad - ' + src : 'Website direct'); }
 
 function doPost(e) {
   let d = {};
@@ -64,7 +73,7 @@ function doPost(e) {
   // 1) Follow Up Boss — only when the key is present (LIVE mode). Otherwise log-only.
   const key = PropertiesService.getScriptProperties().getProperty('FUB_API_KEY');
   let fub = { result: 'not sent (log-only mode: FUB_API_KEY not set)', id: '' };
-  if (key) fub = sendToFub_(d, offer, key);
+  if (key) fub = sendToFub_(d, offer, key, src);
 
   // 2) Paper trail — every submission, whatever happened with FUB.
   let logged = false;
@@ -80,7 +89,7 @@ function doPost(e) {
 function doGet() { return out_({ ok: true, service: 'postcard-qr-to-fub', mode: PropertiesService.getScriptProperties().getProperty('FUB_API_KEY') ? 'live' : 'log-only' }); }
 
 // ---- Follow Up Boss -------------------------------------------------------------------------------
-function sendToFub_(d, offer, key) {
+function sendToFub_(d, offer, key, src) {
   try {
     const cfg = OFFERS[offer];
     const name = (d.name || '').trim().split(/\s+/);
@@ -92,7 +101,7 @@ function sendToFub_(d, offer, key) {
       emails: d.email ? [{ value: d.email, type: 'home' }] : [],
       phones: d.phone ? [{ value: d.phone, type: 'mobile' }] : [],
       addresses: d.address ? [{ street: addr[0] || '', city: addr[1] || '', state: 'CA' }] : [],
-      tags: cfg.tags,
+      tags: cfg.tags.concat([channelTag_(src)]),
       source: offer === 'contact' ? 'Website' : 'Postcard QR'
     };   // NOTE: FUB rejects a 'type' field on people (tested 9/19/2026); seller-ness is carried by tags + stage
     if (cfg.stage) person.stage = cfg.stage;
