@@ -46,22 +46,23 @@ const PAUSED_OFFERS = ['report'];
 
 // Which offer -> which tags / stage / plan
 const OFFERS = {
-  guide:     { tags: ['Partners In Luxury', 'Expired Luxury', "Why Your Luxury Home Didn't Sell"], stage: 'Expired Luxury - Partners In Luxury', plan: PLAN_ID_QR_DIDNT_SELL },
-  plan:      { tags: ['Partners In Luxury', 'Expired Luxury', 'The Second Launch Plan'],            stage: 'Expired Luxury - Partners In Luxury', plan: PLAN_ID_QR_SECOND_LAUNCH },
-  checklist: { tags: ['Partners In Luxury', 'Expired Luxury', 'Spring Relaunch Checklist'],         stage: 'Expired Luxury - Partners In Luxury', plan: PLAN_ID_QR_SPRING_CHECKLIST },
-  fallprep:  { tags: ['Partners In Luxury', 'Luxury', 'Fall Prep Guide'],                           stage: null, plan: PLAN_ID_QR_FALL_PREP },
-  report:    { tags: ['Partners In Luxury', 'Luxury', 'Luxury Market Report'],                      stage: null, plan: PLAN_ID_QR_MARKET_REPORT },
-  contact:   { tags: ['Partners In Luxury', 'Website Contact'],                                      stage: null, plan: PLAN_ID_WEBSITE_CONTACT }
+  guide:     { tags: ['Partners In Luxury', 'Expired Luxury', 'WHYYOURLUXURYHOMEDIDNTSELL'], stage: 'Expired Luxury - Partners In Luxury', plan: PLAN_ID_QR_DIDNT_SELL },
+  plan:      { tags: ['Partners In Luxury', 'Expired Luxury', 'THESECONDLAUNCHPLAN'],            stage: 'Expired Luxury - Partners In Luxury', plan: PLAN_ID_QR_SECOND_LAUNCH },
+  checklist: { tags: ['Partners In Luxury', 'Expired Luxury', 'SPRINGRELAUNCHCHECKLIST'],         stage: 'Expired Luxury - Partners In Luxury', plan: PLAN_ID_QR_SPRING_CHECKLIST },
+  fallprep:  { tags: ['Partners In Luxury', 'Luxury', 'FALLPREPGUIDE'],                           stage: null, plan: PLAN_ID_QR_FALL_PREP },
+  report:    { tags: ['Partners In Luxury', 'Luxury', 'LUXURYMARKETREPORT'],                      stage: null, plan: PLAN_ID_QR_MARKET_REPORT },
+  contact:   { tags: ['Partners In Luxury', 'WEBSITECONTACT'],                                      stage: null, plan: PLAN_ID_WEBSITE_CONTACT }
 };
 // Channel tag from the ?src= on the page URL: c1..c7 = that postcard, ad1.. = that StreetText ad, else website.
+// Tag spelling matches what Felicia typed into StreetText (uppercase, no spaces) so FUB sees ONE tag per guide either way.
 const CHANNEL_TAGS = {
-  c1: 'Postcard 1 - Its Not the House', c2: 'Postcard 2 - Where Your Buyer Lives', c3: 'Postcard 3 - We Noticed',
-  c4: 'Postcard 4 - The Second Launch', c5: 'Postcard 5 - Spring Is Five Months Away', c6: 'Postcard 6 - Your Neighbors Are Asking',
-  c7: 'Postcard 7 - Market Update',
-  ad1: 'Ad 1 - Its Not the House', ad2: 'Ad 2 - The Second Launch', ad3: 'Ad 3 - Spring Is Five Months Away',
-  ad4: 'Ad 4 - Every Agent in Town', ad5: 'Ad 5 - Where the Buyer Lives', ad6: 'Ad 6 - Fall Prep'
+  c1: 'POSTCARD1ITSNOTTHEHOUSE', c2: 'POSTCARD2WHEREYOURBUYERLIVES', c3: 'POSTCARD3WENOTICED',
+  c4: 'POSTCARD4THESECONDLAUNCH', c5: 'POSTCARD5SPRINGISFIVEMONTHSAWAY', c6: 'POSTCARD6YOURNEIGHBORSAREASKING',
+  c7: 'POSTCARD7MARKETUPDATE',
+  ad1: 'AD1ITSNOTTHEHOUSE', ad2: 'AD2-THESECONDLAUNCH', ad3: 'AD3-SPRINGISFIVEMONTHSAWAY',
+  ad4: 'AD4EVERYAGENTINTOWN', ad5: 'AD5-WHEREBUYERLIVES', ad6: 'AD6FALLPREP'
 };
-function channelTag_(src) { return CHANNEL_TAGS[src] || (src ? 'Ad - ' + src : 'Website direct'); }
+function channelTag_(src) { return CHANNEL_TAGS[src] || (src ? ('AD-' + String(src).toUpperCase()) : 'WEBSITEDIRECT'); }
 
 function doPost(e) {
   let d = {};
