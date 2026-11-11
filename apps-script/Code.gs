@@ -90,49 +90,151 @@ function doPost(e) {
 function doGet() { return out_({ ok: true, service: 'postcard-qr-to-fub', mode: PropertiesService.getScriptProperties().getProperty('FUB_API_KEY') ? 'live' : 'log-only' }); }
 
 // ---- Follow Up Boss -------------------------------------------------------------------------------
+// MATCHING RULE (Felicia 11/11/2026): postcard people are ALREADY in Belia's FUB. A form submission must be
+// linked to the existing contact, never create a duplicate. Lookup order:
+//   1) email  2) phone  3) property address among people tagged "workable" / "Partners In Luxury"
+// Only when nothing matches is a new person created (ad / website visitors who were never mailed).
+// Existing contacts: tags are ADDED (never removed), the typed email/phone is appended as a non-primary entry,
+// name / stage / source / assigned agent are left alone. FUB "Tag Added" automations then start the guide plan
+// (and the 10-minute fub_tag_enroll sweep backs it up), so the script does NOT enroll existing people itself
+// (that would enroll them twice). One QR plan per person: if they are already in a QR plan, the guide tag is
+// withheld (it would trigger another plan) and a note is left instead.
+const LIST_TAGS = ['workable', 'Partners In Luxury'];
+// Tags that fire a FUB "Tag Added" automation into a plan (see fub_tag_enroll.py TAG_PLAN)
+const TRIGGER_TAGS = ['WHYYOURLUXURYHOMEDIDNTSELL', 'THESECONDLAUNCHPLAN', 'SPRINGRELAUNCHCHECKLIST',
+                      'EVERYAGENTHASYOURADDRESS', 'THREEQUESTIONSTOASKEVERYAGENT'];
+
+function fubGet_(path, auth) {
+  const r = UrlFetchApp.fetch(FUB + path, { headers: auth, muteHttpExceptions: true });
+  return r.getResponseCode() === 200 ? JSON.parse(r.getContentText() || '{}') : {};
+}
+function digits_(s) { return String(s || '').replace(/\D/g, '').replace(/^1(?=\d{10}$)/, ''); }
+// "633 Kalthoff Common, Livermore" -> "633 kalthoff" (house number + first word of the street name)
+function addrKey_(s) {
+  const m = String(s || '').toLowerCase().replace(/[.,#]/g, ' ').match(/^\s*(\d+[a-z]?)\s+(?:(?:n|s|e|w|north|south|east|west)\s+)?([a-z0-9]+)/);
+  return m ? m[1] + ' ' + m[2] : '';
+}
+function nameScore_(p, typedName) {
+  const t = String(typedName || '').toLowerCase().split(/[^a-z]+/).filter(Boolean);
+  const f = String(p.firstName || '').toLowerCase(), l = String(p.lastName || '').toLowerCase();
+  return (l && t.indexOf(l) >= 0 ? 2 : 0) + (f && t.indexOf(f) >= 0 ? 1 : 0);
+}
+
+// Returns { id, how } for an existing contact, or null
+function findExisting_(d, auth) {
+  const email = String(d.email || '').trim().toLowerCase();
+  if (email) {
+    const b = fubGet_('people?email=' + encodeURIComponent(email) + '&limit=5&fields=id,name', auth);
+    if (b.people && b.people.length) return { id: b.people[0].id, how: 'email' };
+  }
+  const ph = digits_(d.phone);
+  if (ph.length === 10) {
+    const b = fubGet_('people?phone=' + ph + '&limit=5&fields=id,name', auth);
+    if (b.people && b.people.length) return { id: b.people[0].id, how: 'phone' };
+  }
+  const key = addrKey_(d.address);
+  if (key) {
+    const seen = {}, hits = [];
+    LIST_TAGS.forEach(function (tag) {
+      for (let off = 0; off < 2000; off += 100) {
+        const b = fubGet_('people?tags=' + encodeURIComponent(tag) + '&limit=100&offset=' + off + '&fields=id,firstName,lastName,addresses', auth);
+        const ppl = b.people || [];
+        ppl.forEach(function (p) {
+          if (seen[p.id]) return; seen[p.id] = 1;
+          if ((p.addresses || []).some(function (a) { return addrKey_(a.street) === key; })) hits.push(p);
+        });
+        if (ppl.length < 100) break;
+      }
+    });
+    if (hits.length) {
+      hits.sort(function (a, b) { return nameScore_(b, d.name) - nameScore_(a, d.name) || a.id - b.id; });
+      const best = hits[0];
+      return { id: best.id, how: 'address' + (nameScore_(best, d.name) ? '' : ' (name differs - check)') + (hits.length > 1 ? ', ' + hits.length + ' at address' : '') };
+    }
+  }
+  return null;
+}
+
 function sendToFub_(d, offer, key, src) {
   try {
     const cfg = OFFERS[offer];
+    const auth = { Authorization: 'Basic ' + Utilities.base64Encode(key + ':'), 'X-System': 'NorCalAdmin-LandingPage' };
+    const wantTags = cfg.tags.concat([channelTag_(src)]);
+    const noteBody = 'Requested: ' + offer + '\nSubmitted as: ' + (d.name || '') + ' / ' + (d.email || '') + ' / ' + (d.phone || '') +
+      '\nProperty: ' + (d.address || '') + (d.interest ? '\nInterest: ' + d.interest : '') + (d.message ? '\nMessage: ' + d.message : '') +
+      '\nConsent to call/text: ' + (d.consent ? 'YES' : 'no') + '\nPage: ' + (d.page || '') + '\nSubmitted: ' + (d.ts || new Date().toISOString());
+    const note = function (id, subject, body) {
+      UrlFetchApp.fetch(FUB + 'notes', { method: 'post', contentType: 'application/json', headers: auth, muteHttpExceptions: true,
+        payload: JSON.stringify({ personId: id, subject: subject, body: body }) });
+    };
+
+    // ---- 1) Existing contact: link, never create ----
+    const hit = findExisting_(d, auth);
+    if (hit) {
+      const p = fubGet_('people/' + hit.id, auth);
+      const inQr = QR_PLAN_IDS.indexOf(cfg.plan) >= 0 ? currentQrPlan_(hit.id, auth) : null;
+      let add = wantTags.slice();
+      if (inQr) add = add.filter(function (t) { return TRIGGER_TAGS.indexOf(t) < 0 && t !== 'FALLPREPGUIDE'; });
+      const tags = (p.tags || []).slice();
+      add.forEach(function (t) { if (tags.map(function (x) { return x.toLowerCase(); }).indexOf(t.toLowerCase()) < 0) tags.push(t); });
+      const upd = { tags: tags };
+      const email = String(d.email || '').trim();
+      if (email && !(p.emails || []).some(function (e) { return String(e.value).toLowerCase() === email.toLowerCase(); }))
+        upd.emails = (p.emails || []).map(function (e) { return { value: e.value, type: e.type, isPrimary: e.isPrimary }; })
+                                     .concat([{ value: email, type: 'other', isPrimary: (p.emails || []).length ? false : true }]);
+      const ph = digits_(d.phone);
+      if (ph.length === 10 && !(p.phones || []).some(function (x) { return digits_(x.value) === ph; }))
+        upd.phones = (p.phones || []).map(function (x) { return { value: x.value, type: x.type, isPrimary: x.isPrimary }; })
+                                     .concat([{ value: ph, type: 'mobile', isPrimary: (p.phones || []).length ? false : true }]);
+      const r = UrlFetchApp.fetch(FUB + 'people/' + hit.id, { method: 'put', contentType: 'application/json', headers: auth,
+        payload: JSON.stringify(upd), muteHttpExceptions: true });
+      note(hit.id, (offer === 'contact' ? 'Website contact' : 'Postcard QR: ' + offer) + ' (matched by ' + hit.how + ')', noteBody);
+      let result = 'matched existing by ' + hit.how + (r.getResponseCode() < 300 ? '' : ' (tag update FAILED ' + r.getResponseCode() + ')');
+      if (inQr) {
+        note(hit.id, 'Second QR request: ' + offer, 'Also requested "' + offer + '" but is already in QR plan ' + inQr +
+          '. Guide tag withheld so no second plan starts (one QR plan per person). Send the piece by hand if they ask.');
+        result += ', already in plan ' + inQr + ' (not re-enrolled)';
+      } else if (cfg.plan === PLAN_ID_QR_FALL_PREP || cfg.plan === PLAN_ID_WEBSITE_CONTACT) {
+        // No Tag Added automation for these two: enroll directly if not already on the plan
+        const on = fubGet_('actionPlansPeople?personId=' + hit.id + '&limit=100', auth);
+        const list = on.actionPlansPeople || on.actionplanspeople || [];
+        if (!list.some(function (x) { return x.actionPlanId === cfg.plan; })) {
+          const en = UrlFetchApp.fetch(FUB + 'actionPlansPeople', { method: 'post', contentType: 'application/json', headers: auth,
+            muteHttpExceptions: true, payload: JSON.stringify({ personId: hit.id, actionPlanId: cfg.plan }) });
+          result += en.getResponseCode() < 300 ? ', enrolled in plan ' + cfg.plan : ', plan enroll FAILED ' + en.getResponseCode();
+        }
+      } else {
+        result += ', plan ' + cfg.plan + ' starts from the tag automation';
+      }
+      return { result: result, id: String(hit.id) };
+    }
+
+    // ---- 2) Nobody matched: genuinely new lead (ad / website visitor) ----
     const name = (d.name || '').trim().split(/\s+/);
     const first = name.shift() || '', last = name.join(' ');
-    const addr = (d.address || '').split(',').map(s => s.trim());
-
+    const addr = (d.address || '').split(',').map(function (s) { return s.trim(); });
     const person = {
       firstName: first, lastName: last,
       emails: d.email ? [{ value: d.email, type: 'home' }] : [],
       phones: d.phone ? [{ value: d.phone, type: 'mobile' }] : [],
       addresses: d.address ? [{ street: addr[0] || '', city: addr[1] || '', state: 'CA' }] : [],
-      tags: cfg.tags.concat([channelTag_(src)]),
+      tags: wantTags,
       source: offer === 'contact' ? 'Website' : 'Postcard QR'
     };   // NOTE: FUB rejects a 'type' field on people (tested 9/19/2026); seller-ness is carried by tags + stage
     if (cfg.stage) person.stage = cfg.stage;
-
-    const auth = { Authorization: 'Basic ' + Utilities.base64Encode(key + ':'), 'X-System': 'NorCalAdmin-LandingPage' };
-    // Create or merge (FUB dedupes on email/phone)
     const r = UrlFetchApp.fetch(FUB + 'people?deduplicate=true', {
       method: 'post', contentType: 'application/json', headers: auth, payload: JSON.stringify(person), muteHttpExceptions: true
     });
     const body = JSON.parse(r.getContentText() || '{}');
     const id = body.id;
     if (!id) return { result: 'FUB ERROR ' + r.getResponseCode() + ' ' + (body.errorMessage || r.getContentText()).slice(0, 200), id: '' };
+    note(id, offer === 'contact' ? 'Website contact' : 'Postcard QR: ' + offer, noteBody);
 
-    // Note with the details the ISAs / agents want to see
-    UrlFetchApp.fetch(FUB + 'notes', {
-      method: 'post', contentType: 'application/json', headers: auth, muteHttpExceptions: true,
-      payload: JSON.stringify({ personId: id, subject: (offer === 'contact' ? 'Website contact' : 'Postcard QR: ' + offer),
-        body: 'Requested: ' + offer + '\nProperty: ' + (d.address || '') + (d.interest ? '\nInterest: ' + d.interest : '') + (d.message ? '\nMessage: ' + d.message : '') + '\nConsent to call/text: ' + (d.consent ? 'YES' : 'no') + '\nPage: ' + (d.page || '') + '\nSubmitted: ' + (d.ts || new Date().toISOString()) })
-    });
-
-    // Enroll in this offer's action plan (one QR plan per person; Website Contact always enrolls)
-    let result = 'created/merged';
+    // Created-with-tags never fires the Tag Added automations, so enroll directly (one QR plan per person)
+    let result = 'created new';
     if (cfg.plan) {
       const already = QR_PLAN_IDS.indexOf(cfg.plan) >= 0 ? currentQrPlan_(id, auth) : null;
       if (already) {
-        UrlFetchApp.fetch(FUB + 'notes', {
-          method: 'post', contentType: 'application/json', headers: auth, muteHttpExceptions: true,
-          payload: JSON.stringify({ personId: id, subject: 'Second QR request: ' + offer,
-            body: 'Also requested "' + offer + '" but is already in QR plan ' + already + '. Not re-enrolled (one QR plan per person). Send the piece by hand if they ask.' })
-        });
         result += ', already in plan ' + already + ' (not re-enrolled)';
       } else {
         const en = UrlFetchApp.fetch(FUB + 'actionPlansPeople', {
